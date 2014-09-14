@@ -37,6 +37,8 @@ Below is a minimal schematic of the most basic processes required for this progr
 
 ## Coding for Basic Functionality
 
+[Full Assembly Language Code](Lab1_Basic_Functionality)
+
 The first step was to figure out how to store the tested input, then to allow them to be read by the program, executed, and to progressed through.
 
 To execute this, I used the .byte directive to store them, and named the set of inputs myProgram.
