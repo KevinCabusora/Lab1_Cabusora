@@ -3,6 +3,7 @@ Lab1_Cabusora
 
 A Simple Yet Awesome Calculator
 C2C Kevin Cabusora, Dr. York, ECE 382
+
 =============
 ##Objectives
 The objective for this lab was to create a calculator using assembly language.  The basic principle was to store three bytes:  the first and third would be the operands, and the middle byte is the operation.  The goal was to create a calculator able to execute an operation by reading the operation.
