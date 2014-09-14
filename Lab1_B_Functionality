@@ -1,0 +1,109 @@
+;-------------------------------------------------------------------------------
+; MSP430 Assembler Code Template for use with TI Code Composer Studio
+; C2C Kevin Cabusora, Dr. George York, ECE 382
+;
+;-------------------------------------------------------------------------------
+            .cdecls C,LIST,"msp430.h"       ; Include device header file
+
+;-------------------------------------------------------------------------------
+                          ; Assemble into program memory
+            .retain                         ; Override ELF conditional linking
+                                            ; and retain current section
+            .retainrefs                     ; Additionally retain any sections
+                                            ; that have references to current
+                                            ; section
+        	  .text
+
+            .text
+myProgram:	.byte	0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0xDD, 0x44, 0x08, 0x22, 0x09, 0x44, 0xFF, 0x22, 0xFD, 0x55.
+                              ; Above are the inputs and operands.
+
+;-------------------------------------------------------------------------------
+RESET       mov.w   #__STACK_END,SP         ; Initialize stackpointer
+StopWDT     mov.w   #WDTPW|WDTHOLD,&WDTCTL  ; Stop watchdog timer
+
+;-------------------------------------------------------------------------------
+List_Of_Operations:
+ADD_OP:			.equ	0x11				; Initializing constants
+SUB_OP:			.equ	0x22				; for operations
+CLR_OP:			.equ	0x44
+END_OP:			.equ	0x55
+SET_MIN:    .equ  0x00        ; Now with constants to be compared
+SET_MAX:    .equ  0xFF
+
+			mov.w	#myProgram,r5			; Moves string into r5
+			mov.w	#0x200,r4				  ; Memory location 0x200 stored here
+
+Restart:
+			mov.b	@r5+,r6					  ; Increment pointer of accumulator at r5
+											        ; to r6 (First Input byte)
+
+OperationSelect:
+			mov.b	@r5+,r7           ; Moves pointer of accumulator to Operation byte
+			cmp		#CLR_OP,r7        ; Checks if matches CLR_OP code
+			jz		clear
+
+			mov.b	@r5+,r8           ; Moves pointer to Second Input byte
+			cmp		#ADD_OP,r7        ; Checks if matches various operation codes
+			jz		addition
+			cmp		#SUB_OP,r7        
+			jz		subtraction
+			cmp		#END_OP,r7        
+			jz		endprogram
+
+addition:                     ; Now with added jump to ceiling
+			add.w	r8, r6
+			cmp		#SET_MAX, r6
+			jge		ceiling
+			mov.b	r6, 0(r4)
+			inc		r4
+			jmp		OperationSelect
+
+subtraction:                  ; Now with added jump to floor
+			sub.w	r8, r6
+			cmp		#SET_MIN, r6
+			jn		floor
+			mov.b	r6,	0(r4)
+			inc		r4
+			jmp		OperationSelect
+
+clear:
+			mov.w	#0x00, r6         ; Effectively clears r6, then also byte
+			mov.w	#0x00, 0(r4)
+			inc		r4
+			mov.w	r8, r6
+			jmp		Restart
+			
+ceiling:
+			mov.w	#SET_MAX, r6
+			mov.b	r6, 0(r4)
+			inc		r4
+			jmp		OperationSelect
+
+floor:
+			mov.w	#SET_MIN, r6
+			mov.b	r6, 0(r4)
+			inc		r4
+			jmp		OperationSelect
+
+			
+endprogram:                   ; Leads to infinite loop which in turn ends program
+			jmp		forever
+
+forever:
+			jmp		forever
+			                                            ; Main loop here
+;-------------------------------------------------------------------------------
+
+
+;-------------------------------------------------------------------------------
+;           Stack Pointer definition
+;-------------------------------------------------------------------------------
+            .global __STACK_END
+            .sect 	.stack
+
+;-------------------------------------------------------------------------------
+;           Interrupt Vectors
+;-------------------------------------------------------------------------------
+            .sect   ".reset"                ; MSP430 RESET Vector
+            .short  RESET
